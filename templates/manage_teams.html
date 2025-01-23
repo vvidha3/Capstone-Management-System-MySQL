@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manage Teams</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+</head>
+<body>
+    <div class="container mt-5">
+        <h1>Manage Teams</h1>
+
+        <!-- Display success/error messages -->
+        {% with messages = get_flashed_messages() %}
+            {% if messages %}
+                <div class="alert alert-info">
+                    {% for message in messages %}
+                        {{ message }}<br>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        {% endwith %}
+
+        <h2 id="form-heading">Add New Team</h2>
+        <form method="POST" action="{{ url_for('manage_teams') }}" id="team-form">
+            <input type="hidden" id="team_id" name="team_id" value="">
+            <div class="form-group">
+                <label for="project_name">Project Name</label>
+                <input type="text" class="form-control" id="project_name" name="project_name" required>
+            </div>
+            <div class="form-group">
+                <label for="domain">Domain</label>
+                <input type="text" class="form-control" id="domain" name="domain" required>
+            </div>
+            <div class="form-group">
+                <label for="dept_id">Department</label>
+                <select class="form-control" id="dept_id" name="dept_id" required>
+                    <option value="">Select Department</option>
+                    {% for department in departments %}
+                        <option value="{{ department[0] }}">{{ department[1] }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <!-- Faculty Supervisor section, hidden by default -->
+            <div class="form-group" id="faculty-supervisor-section" style="display: none;">
+                <label for="faculty_id">Faculty Supervisor</label>
+                <select class="form-control" id="faculty_id" name="faculty_id">
+                    <option value="">Select Faculty</option>
+                    {% for faculty in faculties %}
+                        <option value="{{ faculty[0] }}">{{ faculty[1] }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <button type="submit" class="btn btn-primary">Add Team</button>
+        </form>
+
+        <h2 class="mt-5">Existing Teams</h2>
+        <table class="table table-bordered">
+            <thead>
+                <tr>
+                    <th>Team ID</th>
+                    <th>Project Name</th>
+                    <th>Domain</th>
+                    <th>Department ID</th>
+                    <th>Faculty Supervisor</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for team in teams %}
+                    <tr>
+                        <td>{{ team[0] }}</td>
+                        <td>{{ team[1] }}</td>
+                        <td>{{ team[2] }}</td>
+                        <td>{{ team[3] }}</td>
+                        <td>{{ team[4] or 'Not Assigned' }}</td>
+                        <td>
+                            <button class="btn btn-warning btn-sm" 
+                                    data-team-id="{{ team[0] }}" 
+                                    data-team-name="{{ team[1] }}" 
+                                    data-team-domain="{{ team[2] }}" 
+                                    data-team-dept="{{ team[3] }}" 
+                                    data-faculty-id="{{ team[5] or '' }}" 
+                                    onclick="editTeam(this)">Edit</button>
+
+                            <form method="POST" action="{{ url_for('delete_team', team_id=team[0]) }}" style="display:inline;">
+                                <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Are you sure you want to delete this team?');">Delete</button>
+                            </form>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <script>
+        function editTeam(button) {
+            var teamId = button.getAttribute('data-team-id');
+            var projectName = button.getAttribute('data-team-name');
+            var domain = button.getAttribute('data-team-domain');
+            var deptId = button.getAttribute('data-team-dept');
+            var facultyId = button.getAttribute('data-faculty-id');
+
+            document.getElementById('team_id').value = teamId;
+            document.getElementById('project_name').value = projectName;
+            document.getElementById('domain').value = domain;
+            document.getElementById('dept_id').value = deptId;
+            document.getElementById('faculty_id').value = facultyId || '';
+
+            // Change form title and submit button text for editing
+            document.getElementById('form-heading').innerText = "Update Team";
+            document.querySelector('button[type="submit"]').innerText = "Update Team";
+            document.getElementById('team-form').action = "/update_team/" + teamId;
+
+            // Show the faculty supervisor section for editing
+            document.getElementById('faculty-supervisor-section').style.display = "block";
+        }
+
+        // Reset the form when adding a new team
+        document.getElementById('team-form').onsubmit = function() {
+            // Hide the faculty supervisor section if it's an add operation
+            if (!document.getElementById('team_id').value) {
+                document.getElementById('faculty-supervisor-section').style.display = "none";
+            }
+        };
+    </script>
+
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.0.7/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+</body>
+</html>

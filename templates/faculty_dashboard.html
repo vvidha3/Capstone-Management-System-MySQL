@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+
+{% block title %}Faculty Dashboard{% endblock %}
+
+{% block content %}
+<h2 class="mt-4">Welcome!</h2>
+<form action="{{ url_for('logout') }}" method="post">
+    <button type="submit" class="btn btn-danger">Logout</button>
+</form>
+<hr>
+
+<!-- Upcoming Exams Notification -->
+<h4 class="mt-4">Upcoming Exams</h4>
+{% if upcoming_exams %}
+    <ul class="list-group">
+        {% for exam in upcoming_exams %}
+        <li class="list-group-item">
+            <strong>{{ exam[1] }}</strong> - Date: {{ exam[2] }} | Time: {{ exam[3] }}
+        </li>
+        {% endfor %}
+    </ul>
+{% else %}
+    <p>No upcoming exams.</p>
+{% endif %}
+
+<!-- Teams Supervised -->
+<h4 class="mt-4">Teams Under Your Supervision</h4>
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>Team ID</th>
+            <th>Project Name</th>
+            <th>Domain</th>
+            <th>Student Name</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for team in team_students %}
+        <tr>
+            <td>{{ team[0] }}</td>
+            <td>{{ team[1] }}</td>
+            <td>{{ team[2] }}</td>
+            <td>{{ team[3] }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

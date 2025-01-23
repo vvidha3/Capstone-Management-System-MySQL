@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+
+{% block title %}Student Dashboard{% endblock %}
+
+{% block content %}
+<h2 class="mt-4">Welcome!</h2>
+<form action="{{ url_for('logout') }}" method="post">
+    <button type="submit" class="btn btn-danger">Logout</button>
+</form>
+<hr>
+
+<!-- Upcoming Exams Notification -->
+<h4 class="mt-4">Upcoming Exams</h4>
+{% if upcoming_exams %}
+    <ul class="list-group">
+        {% for exam in upcoming_exams %}
+        <li class="list-group-item">
+            <strong>{{ exam[1] }}</strong> - Date: {{ exam[2] }} | Time: {{ exam[3] }}
+        </li>
+        {% endfor %}
+    </ul>
+{% else %}
+    <p>No upcoming exams.</p>
+{% endif %}
+
+<!-- Team Information -->
+<div class="card mt-4">
+    <div class="card-body">
+        <h5 class="card-title">Team You Belong To: {{ team_project_name[0] }}</h5>
+        <p class="card-text">Members in your team:</p>
+        <ul class="list-group">
+            {% for teammate in teammates %}
+            <li class="list-group-item">{{ teammate[0] }}</li>
+            {% endfor %}
+        </ul>
+    </div>
+</div>
+
+<!-- Exam Results -->
+<h4 class="mt-4">Exam Results</h4>
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>Exam ID</th>
+            <th>Exam Name</th>
+            <th>Total Marks Obtained</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for exam in exam_results %}
+        <tr>
+            <td>{{ exam[0] }}</td>
+            <td>{{ exam[1] }}</td>
+            <td>{{ exam[2] }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+<!-- Semester Grades -->
+<h4 class="mt-4">Semester Grades</h4>
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>Semester</th>
+            <th>Total Marks</th>
+            <th>Grade</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for grade in semester_grades %}
+        <tr>
+            <td>{{ grade[0] }}</td>
+            <td>{{ grade[1] }}</td>
+            <td>{{ grade[2] }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+
+{% endblock %}

@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Faculty Details</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+</head>
+<body>
+    <div class="container mt-5">
+        <h1 class="mb-4">Faculty Details</h1>
+
+        <!-- Search bar for Faculty ID -->
+        <form action="{{ url_for('faculty_details') }}" method="GET" class="form-inline mb-4">
+            <input type="text" name="faculty_id" class="form-control mr-2" placeholder="Enter Faculty ID" required>
+            <button type="submit" class="btn btn-primary">Search</button>
+        </form>
+
+        <table class="table table-bordered table-hover">
+            <thead class="thead-dark">
+                <tr>
+                    <th>Faculty ID</th>
+                    <th>Name</th>
+                    <th>Designation</th>
+                    <th>Panel ID</th>
+                    <th>email</th>
+                    <th>Password</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% if faculties %}
+                    {% for faculty in faculties %}
+                    <tr id="faculty-row-{{ faculty[0] }}">
+                        <td>{{ faculty[0] }}</td>
+                        <td>{{ faculty[1] }}</td>
+                        <td>{{ faculty[2] }}</td>
+                        <td>{{ faculty[3] }}</td>
+                        <td>{{ faculty[5] }}</td>
+                        <td>{{ faculty[4] }}</td>
+                        <td>
+                            <button onclick="openUpdateModal({{ faculty[0] }})" class="btn btn-primary btn-sm">Update</button>
+                            <button onclick="deleteFaculty({{ faculty[0] }})" class="btn btn-danger btn-sm">Delete</button>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                {% else %}
+                    <tr>
+                        <td colspan="5" class="text-center">No faculty found with this ID.</td>
+                    </tr>
+                {% endif %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Update Modal -->
+    <div class="modal fade" id="updateModal" tabindex="-1" role="dialog" aria-labelledby="updateModalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="updateModalLabel">Update Faculty</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <form id="updateForm">
+                        <input type="hidden" id="facultyId" name="facultyId">
+                        <div class="form-group">
+                            <label for="facultyName">Name</label>
+                            <input type="text" class="form-control" id="facultyName" name="name" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="designation">Designation</label>
+                            <input type="text" class="form-control" id="designation" name="designation" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="panelId">Panel ID</label>
+                            <input type="number" class="form-control" id="panelId" name="panel_id" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="email">Email</label>
+                            <input type="email" class="form-control" id="email" name="email" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="password">Password</label>
+                            <input type="password" class="form-control" id="password" name="password" required>
+                        </div>
+                        <button type="button" onclick="submitUpdate()" class="btn btn-primary">Save changes</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- JavaScript for AJAX Update -->
+    <script>
+        function openUpdateModal(facultyId) {
+            fetch(`/get_faculty_data/${facultyId}`)
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById('facultyId').value = data.faculty_id;
+                    document.getElementById('facultyName').value = data.name;
+                    document.getElementById('designation').value = data.designation;
+                    document.getElementById('panelId').value = data.panel_id;
+                    document.getElementById('email').value = data.email || "";  // Default to empty if not provided
+                    document.getElementById('password').value = "";  // Password reset field
+                    $('#updateModal').modal('show');
+                })
+                .catch(error => console.error('Error:', error));
+        }
+
+        function submitUpdate() {
+            const facultyId = document.getElementById('facultyId').value;
+            const name = document.getElementById('facultyName').value;
+            const designation = document.getElementById('designation').value;
+            const panelId = document.getElementById('panelId').value;
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+
+            fetch('/update_faculty_ajax', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    faculty_id: facultyId,
+                    name: name,
+                    designation: designation,
+                    panel_id: panelId,
+                    email: email,
+                    password: password
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                alert(data.message);
+                if (data.success) {
+                    document.getElementById(`faculty-row-${facultyId}`).children[1].innerText = name;
+                    document.getElementById(`faculty-row-${facultyId}`).children[2].innerText = designation;
+                    document.getElementById(`faculty-row-${facultyId}`).children[3].innerText = panelId;
+                    $('#updateModal').modal('hide');
+                }
+            })
+            .catch(error => console.error('Error:', error));
+        }
+
+        function deleteFaculty(facultyId) {
+            if (confirm("Are you sure you want to delete this faculty?")) {
+                fetch('/delete_faculty_ajax', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ faculty_id: facultyId })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    alert(data.message);
+                    if (data.message === 'Faculty deleted successfully!') {
+                        document.getElementById(`faculty-row-${facultyId}`).remove();
+                    }
+                })
+                .catch(error => console.error('Error:', error));
+            }
+        }
+    </script>
+
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.0.7/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+</body>
+</html>

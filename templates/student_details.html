@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Details</title>
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+</head>
+<body>
+    <div class="container mt-5">
+        <h1 class="mb-4">Student Details</h1>
+        
+        <form method="get" action="{{ url_for('search_student') }}" class="form-inline mb-3">
+            <input type="text" name="srn" class="form-control mr-2" placeholder="Enter SRN" required>
+            <button type="submit" class="btn btn-primary">Search</button>
+        </form>
+
+        <table class="table table-bordered table-hover">
+            <thead class="thead-dark">
+                <tr>
+                    <th>SRN</th>
+                    <th>Name</th>
+                    <th>Email</th>
+                    <th>Phone</th>
+                    <th>Gender</th>
+                    <th>Section</th>
+                    <th>Semester</th>
+                    <th>GPA</th>
+                    <th>DeptID</th>
+                    <th>TeamID</th>
+                    <th>FacultyID</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% if students %}
+                    {% for student in students %}
+                    <tr id="student-row-{{ student[0] }}" data-srn="{{ student[0] }}">
+                        <td>{{ student[0] }}</td>
+                        <td>{{ student[1] }}</td>
+                        <td>{{ student[2] }}</td>
+                        <td>{{ student[3] }}</td>
+                        <td>{{ student[4] }}</td>
+                        <td>{{ student[5] }}</td>
+                        <td>{{ student[6] }}</td>
+                        <td>{{ student[7] }}</td>
+                        <td>{{ student[8] }}</td>
+                        <td>{{ student[9] }}</td>
+                        <td>{{ student[10] }}</td>
+                        <td>
+                            <button type="button" class="btn btn-primary btn-sm" onclick="openUpdateModal('{{ student[0] }}')">Update</button>
+                            <button type="button" class="btn btn-danger btn-sm" onclick="deleteStudent('{{ student[0] }}')">Delete</button>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                {% else %}
+                    <tr>
+                        <td colspan="12" class="text-center">No students found for this SRN.</td>
+                    </tr>
+                {% endif %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- JavaScript for AJAX deletion and modal update -->
+    <script>
+        function deleteStudent(srn) {
+            if (confirm("Are you sure you want to delete this student?")) {
+                fetch('/delete_student_ajax', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ srn: srn })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    alert(data.message);  // Display the success message
+                    if (data.message === 'Student deleted successfully!') {
+                        const row = document.getElementById(`student-row-${srn}`);
+                        if (row) {
+                            row.remove();  // Remove the student's row from the table
+                        }
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Failed to delete student');
+                });
+            }
+        }
+
+        function openUpdateModal(srn) {
+            // Fetch student data to populate the form
+            fetch(`/get_student_data/${srn}`)
+                .then(response => response.json())
+                .then(data => {
+                    // Populate form fields in the modal
+                    document.getElementById("updateSrn").value = srn;
+                    document.getElementById("updateName").value = data.name;
+                    document.getElementById("updateEmail").value = data.email;
+                    document.getElementById("updatePhone").value = data.phone;
+                    document.getElementById("updateGender").value = data.gender;
+                    document.getElementById("updateSection").value = data.section;
+                    document.getElementById("updateSemester").value = data.semester;
+                    document.getElementById("updateGPA").value = data.gpa;
+                    document.getElementById("updateDeptID").value = data.deptID;
+                    document.getElementById("updateTeamID").value = data.teamID;
+                    document.getElementById("updateFacultyID").value = data.facultyID;
+                    document.getElementById("updatePassword").value = data.password;
+
+                    // Show the modal
+                    $('#updateStudentModal').modal('show');
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Failed to load student data');
+                });
+        }
+
+        function submitUpdate() {
+            const srn = document.getElementById("updateSrn").value;
+            const name = document.getElementById("updateName").value;
+            const email = document.getElementById("updateEmail").value;
+            const phone = document.getElementById("updatePhone").value;
+            const gender = document.getElementById("updateGender").value;
+            const section = document.getElementById("updateSection").value;
+            const semester = document.getElementById("updateSemester").value;
+            const gpa = document.getElementById("updateGPA").value;
+            const deptID = document.getElementById("updateDeptID").value;
+            const teamID = document.getElementById("updateTeamID").value;
+            const facultyID = document.getElementById("updateFacultyID").value;
+            const password = document.getElementById("updatePassword").value;
+
+            fetch('/update_student_ajax', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ srn, name, email, phone, gender, section, semester, gpa, deptID, teamID, facultyID, password })
+            })
+            .then(response => response.json())
+            .then(data => {
+                alert(data.message);
+                if (data.message === 'Student updated successfully!') {
+                    location.reload();  // Reload the page to reflect changes
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Failed to update student');
+            });
+        }
+    </script>
+
+    <!-- Bootstrap JS and dependencies (jQuery and Popper.js) -->
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.0.7/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
+    <!-- Bootstrap Modal for Update -->
+    <div class="modal fade" id="updateStudentModal" tabindex="-1" role="dialog" aria-labelledby="updateStudentModalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="updateStudentModalLabel">Update Student Details</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <form id="updateStudentForm">
+                        <input type="hidden" name="srn" id="updateSrn">
+                        <div class="form-group">
+                            <label for="updateName">Name</label>
+                            <input type="text" class="form-control" id="updateName" name="name" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="updateEmail">Email</label>
+                            <input type="email" class="form-control" id="updateEmail" name="email" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="updatePhone">Phone</label>
+                            <input type="text" class="form-control" id="updatePhone" name="phone" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="updateGender">Gender</label>
+                            <select class="form-control" id="updateGender" name="gender" required>
+                                <option value="M">Male</option>
+                                <option value="F">Female</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="updateSection">Section</label>
+                            <input type="text" class="form-control" id="updateSection" name="section" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="updateSemester">Semester</label>
+                            <input type="number" class="form-control" id="updateSemester" name="semester" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="updateGPA">GPA</label>
+                            <input type="number" step="0.01" class="form-control" id="updateGPA" name="gpa" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="updateDeptID">DeptID</label>
+                            <input type="number" class="form-control" id="updateDeptID" name="deptID" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="updateTeamID">TeamID</label>
+                            <input type="number" class="form-control" id="updateTeamID" name="teamID">
+                        </div>
+                        <div class="form-group">
+                            <label for="updateFacultyID">FacultyID</label>
+                            <input type="number" class="form-control" id="updateFacultyID" name="facultyID">
+                        </div>
+                        <div class="form-group">
+                            <label for="updatePassword">Password</label>
+                            <input type="password" class="form-control" id="updatePassword" name="password" required>
+                        </div>
+                        <button type="button" class="btn btn-primary" onclick="submitUpdate()">Save changes</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

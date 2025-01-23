@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+
+{% block title %}Home{% endblock %}
+
+{% block content %}
+<div class="jumbotron">
+    <h1 class="display-4 font-weight-bold" style="font-size: 2.5rem;">🎉 Welcome to the Capstone Management Portal! 🎉</h1>
+    <h3>Where Ideas Turn into Reality!</h3>
+    <p class="lead">Join us in this vibrant space dedicated to fostering innovation and teamwork. Whether you’re a student eager to showcase your talents, a faculty member guiding the next generation of leaders, or an admin facilitating seamless project management, you’re in the right place! Together, let’s make great things happen! 🌈</p>
+    <hr class="my-4">
+    <!-- <p>Please select your role:</p> -->
+
+    <!-- Dropdown for selecting roles -->
+    <form action="" method="get">
+        <div class="form-group">
+            <label for="roleSelect">Select Your Role</label>
+            <select class="form-control" id="roleSelect" name="role" onchange="navigateToLogin()">
+                <option value="">Choose...</option>
+                <option value="student">Student</option>
+                <option value="faculty">Faculty</option>
+                <option value="admin">Admin</option>
+            </select>
+        </div>
+    </form>
+</div>
+
+<script>
+    function navigateToLogin() {
+        var role = document.getElementById("roleSelect").value;
+        if (role === "student") {
+            window.location.href = "/login/student";
+        } else if (role === "faculty") {
+            window.location.href = "/login/faculty";  // Navigate to faculty login
+        } else if (role === "admin") {
+            window.location.href = "/login/admin";  // Navigate to admin login
+        }
+    }
+</script>
+{% endblock %}

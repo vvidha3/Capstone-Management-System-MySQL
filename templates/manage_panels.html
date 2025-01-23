@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manage Panels</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="container mt-5">
+        <h2 class="text-center mb-4">Manage Panels</h2>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <div class="alert alert-dismissible fade show" role="alert">
+                    {% for category, message in messages %}
+                        <div class="alert alert-{{ category }}">{{ message }}</div>
+                    {% endfor %}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            {% endif %}
+        {% endwith %}
+
+        <!-- Panel Form -->
+        <div class="card mb-5">
+            <div class="card-body">
+                <form action="{{ url_for('manage_panels') }}" method="POST">
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="panel_name" class="form-label">Panel Name</label>
+                            <input type="text" class="form-control" id="panel_name" name="panel_name" placeholder="Enter panel name" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="dept_id" class="form-label">Department</label>
+                            <select class="form-control" id="dept_id" name="dept_id" required>
+                                <option value="">Select Department</option>
+                                {% for dept in departments %}
+                                    <option value="{{ dept[0] }}">{{ dept[1] }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                    <input type="hidden" name="panel_id" id="panel_id">
+                    <button type="submit" class="btn btn-primary" onclick="this.disabled=true; this.form.submit();">Save Panel</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Panel List -->
+        <div class="card">
+            <div class="card-body">
+                <h4 class="card-title mb-4">Existing Panels</h4>
+                <table class="table table-bordered table-hover">
+                    <thead class="thead-dark">
+                        <tr>
+                            <th scope="col">Panel ID</th>
+                            <th scope="col">Panel Name</th>
+                            <th scope="col">Department</th>
+                            <th scope="col">Faculties</th>
+                            <th scope="col">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for panel in panels %}
+                        <tr>
+                            <td>{{ panel[0] }}</td>
+                            <td>{{ panel[1] }}</td>
+                            <td>{{ panel[2] }}</td>
+                            <td>
+                                {% if panel[0] in panel_faculty_dict %}
+                                    <ul>
+                                    {% for faculty in panel_faculty_dict[panel[0]] %}
+                                    <li>{{ faculty.FacultyName }} ({{ faculty.Designation }}) - Faculty ID: {{ faculty.FacultyID }}
+                                            <button class="btn btn-sm btn-primary" onclick="editFaculty('{{ faculty.FacultyID }}', '{{ faculty.FacultyName }}', '{{ faculty.Designation }}', '{{ panel[0] }}')">Edit Faculty</button>
+                                        </li>
+                                    {% endfor %}
+                                    </ul>
+                                {% else %}
+                                    <span>No faculties assigned</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <button class="btn btn-sm btn-warning" onclick="editPanel('{{ panel[0] }}', '{{ panel[1] }}', '{{ panel[2] }}')">Edit</button>
+                                <form action="{{ url_for('delete_panel', panel_id=panel[0]) }}" method="POST" class="d-inline">
+                                    <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Are you sure you want to delete this panel?');">Delete</button>
+                                </form>
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="5" class="text-center">No panels found.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Faculty Modal -->
+    <div class="modal fade" id="editFacultyModal" tabindex="-1" aria-labelledby="editFacultyModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="editFacultyModalLabel">Edit Faculty</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form action="{{ url_for('update_faculty') }}" method="POST">
+                        <!--<input type="hidden" id="faculty_id" name="faculty_id">-->
+                        <div class="mb-3">
+                            <label for="faculty_id" class="form-label">Faculty ID</label>
+                            <input type="text" class="form-control" id="faculty_id" name="faculty_id" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="faculty_name" class="form-label">Faculty Name</label>
+                            <input type="text" class="form-control" id="faculty_name" name="faculty_name" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="designation" class="form-label">Designation</label>
+                            <input type="text" class="form-control" id="designation" name="designation" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="panel_id" class="form-label">Panel</label>
+                            <select class="form-control" id="panel_id_modal" name="panel_id" required>
+                                <option value="">Select Panel</option>
+                                {% for panel in panels %}
+                                    <option value="{{ panel[0] }}">{{ panel[1] }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Save Changes</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        function editPanel(panel_id, panel_name, dept_id) {
+            document.getElementById('panel_id').value = panel_id;
+            document.getElementById('panel_name').value = panel_name;
+            document.getElementById('dept_id').value = dept_id;
+        }
+
+        function editFaculty(faculty_id, faculty_name, designation, panel_id) {
+            document.getElementById('faculty_id').value = faculty_id;
+            document.getElementById('faculty_name').value = faculty_name;
+            document.getElementById('designation').value = designation;
+            document.getElementById('panel_id_modal').value = panel_id;
+            var modal = new bootstrap.Modal(document.getElementById('editFacultyModal'));
+            modal.show();
+        }
+    </script>
+</body>
+</html>

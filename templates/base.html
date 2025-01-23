@@ -1,0 +1,49 @@
+<!DOCTYPE html> 
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Capstone Management System{% endblock %}</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <style>
+        /* Custom styles for the navbar */
+        .navbar {
+            background-color: #d3d3d3; /* Light grey background */
+        }
+        .navbar-brand {
+            color: #0056b3; /* Blue text */
+            display: flex; /* Use flexbox to align logo and text */
+            align-items: center; /* Center items vertically */
+        }
+        .navbar-brand img {
+            height: 70px; /* Adjust the logo height (make it bigger) */
+            margin-right: 10px; /* Space between logo and text */
+        }
+        .navbar-text {
+            flex: 1; /* Allow text to take available space */
+            text-align: center; /* Center the text */
+            font-size: 35px; /* Increase the font size */
+            color: navy !important; /* Set the text color to Navy blue */
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-light">
+        <a class="navbar-brand" href="/">
+            <img src="{{ url_for('static', filename='images/pes_logo.png') }}" alt="PES Logo">
+        </a>
+        <span class="navbar-text">Capstone Management System</span>
+    </nav>
+
+    <div class="container mt-4">
+        {% block content %}
+        {% endblock %}
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+</body>
+</html>
